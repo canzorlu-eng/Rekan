@@ -1,0 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #fbf7f0;
+  --ink: #1c1f26;
+  --teal: #0e6b62;
+  --amber: #e8a33d;
+  --clay: #c4432b;
+  --moss: #3f7a4e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* subtle paper grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  background-image: radial-gradient(#1c1f26 0.6px, transparent 0.6px);
+  background-size: 6px 6px;
+}
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- brutalist kit ---------- */
+@layer components {
+  .brut {
+    @apply border-[3px] border-ink bg-white;
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+  .brut-flat {
+    @apply border-[3px] border-ink bg-white;
+  }
+  .brut-btn {
+    @apply inline-flex items-center justify-center gap-2 border-[3px] border-ink
+      bg-white font-bold uppercase tracking-wide transition-transform duration-150;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .brut-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+  .brut-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .brut-btn:disabled {
+    @apply opacity-50;
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: none;
+  }
+  .brut-input {
+    @apply w-full border-[3px] border-ink bg-white px-4 py-3 font-medium
+      outline-none;
+  }
+  .brut-input:focus {
+    box-shadow: 4px 4px 0 var(--teal);
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 border-2 border-ink px-2 py-0.5
+      text-xs font-bold uppercase;
+  }
+}
+
+/* focus visibility (a11y) */
+:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* worker mode: big targets + big type */
+.worker-scope {
+  font-size: 20px;
+}
+.worker-scope button,
+.worker-scope a.worker-tap {
+  min-height: 64px;
+}
+.worker-scope.pref-large {
+  font-size: 24px;
+}
+.worker-scope.pref-contrast {
+  --paper: #ffffff;
+  background: #ffffff;
+}
+.worker-scope.pref-contrast .brut,
+.worker-scope.pref-contrast .brut-btn {
+  border-color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

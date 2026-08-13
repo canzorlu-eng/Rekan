@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Volume2, ArrowLeft, HelpCircle, Check, X, Sparkles, Image as ImageIcon,
-  UserRound, ShieldAlert, Home, RotateCcw,
+  UserRound, ShieldAlert, Home, RotateCcw, Hand,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useApp, speak } from "@/context/AppContext";
@@ -10,6 +10,18 @@ import { LangToggle, Loading, ErrorState } from "@/components/TopBar";
 import { Pictogram } from "@/lib/pictograms";
 
 const cacheKey = (id) => `rekan_card_${id}`;
+
+function isDirectVideo(url) {
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url || "");
+}
+
+function embedUrl(url) {
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1&rel=0`;
+  const vm = url.match(/vimeo\.com\/(\d+)/);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}?autoplay=1`;
+  return url;
+}
 
 export default function StepRunner() {
   const { cardId } = useParams();
@@ -25,6 +37,7 @@ export default function StepRunner() {
   const [finished, setFinished] = useState(false);
   const [runId, setRunId] = useState(null);
   const [stuck, setStuck] = useState(null); // null | 'menu' | 'simpler' | 'picture' | 'ask'
+  const [signOpen, setSignOpen] = useState(false);
   const [simplerText, setSimplerText] = useState("");
   const [simplifying, setSimplifying] = useState(false);
   const stepStart = useRef(Date.now());
@@ -42,7 +55,7 @@ export default function StepRunner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId]);
 
-  useEffect(() => { stepStart.current = Date.now(); setStuck(null); setSimplerText(""); }, [index]);
+  useEffect(() => { stepStart.current = Date.now(); setStuck(null); setSimplerText(""); setSignOpen(false); }, [index]);
 
   if (status === "loading") return <div className="worker-scope"><Loading /></div>;
   if (status === "error" || !card) return <div className="worker-scope"><ErrorState onRetry={() => navigate(0)} /></div>;
@@ -153,6 +166,11 @@ export default function StepRunner() {
           <button data-testid="audio-btn" aria-label={t("worker.play")} disabled={prefs.nosound} onClick={() => speak(instruction, lang, !prefs.nosound)} className="brut-btn worker-tap bg-white px-4">
             <Volume2 size={26} strokeWidth={2.5} />
           </button>
+          {step.sign_video_url && (
+            <button data-testid="sign-btn" aria-label={t("worker.sign")} onClick={() => setSignOpen(true)} className="brut-btn worker-tap bg-white px-4">
+              <Hand size={26} strokeWidth={2.5} />
+            </button>
+          )}
           <button data-testid="stuck-btn" onClick={() => setStuck("menu")} className="brut-btn worker-tap flex-1 bg-amber px-4 text-lg">
             <HelpCircle size={26} strokeWidth={2.5} /> {t("worker.stuck")}
           </button>
@@ -225,6 +243,26 @@ export default function StepRunner() {
                 <p className="mt-3 text-xl font-bold">{t("stuck.asked_body")}</p>
                 <button onClick={() => setStuck(null)} className="brut-btn worker-tap mt-4 w-full bg-teal px-4 text-white">{t("stuck.close")}</button>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {signOpen && step.sign_video_url && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-ink" role="dialog" aria-modal="true" data-testid="sign-overlay">
+          <div className="flex items-center justify-between border-b-[3px] border-white/30 px-4 py-3 text-white">
+            <span className="flex items-center gap-2 text-xl font-extrabold">
+              <Hand size={26} strokeWidth={2.5} /> {t("worker.sign")}
+            </span>
+            <button data-testid="sign-close" aria-label={t("stuck.close")} onClick={() => setSignOpen(false)} className="brut-btn worker-tap bg-white px-3 py-2 text-ink">
+              <X size={24} strokeWidth={2.5} />
+            </button>
+          </div>
+          <div className="flex flex-1 items-center justify-center p-3">
+            {isDirectVideo(step.sign_video_url) ? (
+              <video data-testid="sign-video" src={step.sign_video_url} controls autoPlay playsInline className="max-h-full max-w-full border-[3px] border-white bg-black" />
+            ) : (
+              <iframe data-testid="sign-video" src={embedUrl(step.sign_video_url)} title={t("worker.sign")} allow="autoplay; fullscreen" allowFullScreen className="h-full w-full border-[3px] border-white bg-black" />
             )}
           </div>
         </div>
